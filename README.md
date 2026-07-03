@@ -1,68 +1,180 @@
-# Java Network Whiteboard
+# 🎨 Java Network Whiteboard
 
-A production-oriented Java Core portfolio project that demonstrates a collaborative whiteboard built with TCP sockets, UDP multicast discovery, multithreading, Swing UI, and a small application-layer protocol.
+> A production-style Java networking application demonstrating TCP/UDP socket programming, multithreading, concurrent programming, and application-layer protocol design.
 
-## Project Overview
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Maven](https://img.shields.io/badge/Maven-3.9-red)
+![TCP](https://img.shields.io/badge/TCP-Socket-blue)
+![UDP](https://img.shields.io/badge/UDP-Multicast-blueviolet)
+![Concurrency](https://img.shields.io/badge/Concurrency-Multithreading-success)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-Java Network Whiteboard is a multi-user drawing and chat application. One instance can run as a TCP server, and other instances connect as TCP clients. Drawing events, chat messages, join/leave events, and clear-board commands are encoded as protocol messages and synchronized over reliable TCP connections. UDP multicast is used only for local peer discovery beacons.
+---
 
-## Features
+## 📖 Overview
 
-- Multi-user whiteboard drawing synchronization
-- Chat synchronization
-- Join/leave peer state tracking
-- TCP client/server architecture
-- UDP multicast peer discovery
-- Application-layer message protocol with escaping
-- Thread-safe peer, drawing, and chat services
-- Graceful socket and executor shutdown
-- Swing UI separated from network code
-- Unit tests for protocol codec and peer service
+Java Network Whiteboard is a production-style Java networking application built with Java Core.
 
-## Tech Stack
+The project demonstrates modern software engineering practices including:
 
-- Java 17
-- Maven
-- Java TCP Socket / ServerSocket
-- Java UDP MulticastSocket
+- TCP Socket Programming
+- UDP Multicast Peer Discovery
+- Client / Server Architecture
+- Application-layer Protocol Design
+- Multithreading
+- Concurrent Programming
+- Swing User Interface
+- Layered Architecture
+
+This project is continuously improved as part of my Java software engineering portfolio.
+
+---
+
+# ✨ Features
+
+### Networking
+
+- TCP Client / Server Communication
+- UDP Peer Discovery
+- Reliable Message Synchronization
+- Connection Management
+
+### Whiteboard
+
+- Real-time Drawing Synchronization
+- Multi-user Collaboration
+- Canvas Clear Synchronization
+
+### Chat
+
+- Real-time Chat
+- Join / Leave Notification
+
+### Software Engineering
+
+- Layered Architecture
+- Thread-safe Services
 - ExecutorService
-- ConcurrentHashMap and CopyOnWriteArrayList
-- Swing
-- JUnit 5
+- Graceful Shutdown
 
-## Architecture
+---
+
+# 🛠 Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Language | Java 17 |
+| Networking | TCP Socket / UDP Multicast |
+| UI | Swing |
+| Concurrency | ExecutorService / ConcurrentHashMap |
+| Build Tool | Maven |
+| Testing | JUnit 5 |
+| Version Control | Git / GitHub |
+
+---
+
+# 📂 Project Structure
 
 ```text
-src/main/java/com/hanyao/whiteboard
-├── Main.java
-├── config
-├── model
-├── protocol
-├── network
-├── service
-├── ui
-└── util
+src
+├── main
+│   ├── java
+│   │   └── com.hanyao.whiteboard
+│   │       ├── config
+│   │       ├── model
+│   │       ├── network
+│   │       ├── protocol
+│   │       ├── service
+│   │       ├── ui
+│   │       └── util
+│   └── resources
 ```
 
-The UI does not parse strings and does not open sockets. It calls service-level operations and sends typed `Message` objects through a `MessageSender`. The network layer reads/writes encoded lines, while `MessageCodec` owns all wire-format parsing.
+---
 
-## TCP / UDP Design
+# 🏗 Architecture
 
-TCP is used for reliable real-time application events:
+```text
+Swing UI
+    │
+    ▼
+Service
+    │
+    ▼
+Protocol
+    │
+    ▼
+Network
+ ┌─────────────┐
+ │ TCP │ UDP   │
+ └─────────────┘
+    │
+    ▼
+Remote Peers
+```
 
-- `JOIN`
-- `LEAVE`
-- `DRAW`
-- `CHAT`
-- `CLEAR`
-- `PING`
-- `PONG`
+---
 
-UDP is used only for LAN discovery. Each server instance periodically multicasts a `JOIN|username|ip|port` beacon so peers can discover available whiteboard hosts without sending drawing data over UDP.
+# 🚀 Getting Started
 
-## Message Protocol
+## 1. Clone Repository
 
-Messages are line-delimited UTF-8 strings:
+```bash
+git clone https://github.com/hanyao-dev/java-network-whiteboard.git
+```
+
+---
+
+## 2. Build Project
+
+```bash
+mvn clean compile
+```
+
+---
+
+## 3. Run Tests
+
+```bash
+mvn test
+```
+
+---
+
+## 4. Run Application
+
+Server
+
+```bash
+mvn exec:java "-Dexec.args=--server 5050 alice"
+```
+
+Client
+
+```bash
+mvn exec:java "-Dexec.args=--connect localhost 5050 bob"
+```
+
+---
+
+# 🌐 Network Protocol
+
+## TCP
+
+- JOIN
+- LEAVE
+- DRAW
+- CHAT
+- CLEAR
+- PING
+- PONG
+
+## UDP
+
+- Peer Discovery
+- Broadcast / Multicast Announcement
+
+### Message Format
 
 ```text
 JOIN|username|ip|port
@@ -74,62 +186,55 @@ PING|username
 PONG|username
 ```
 
-The codec supports escaping for `|`, backslash, and newlines, so chat payloads can contain normal user text without breaking parsing.
+---
 
-## Concurrency Model
+# 📌 Current Progress
 
-- `TcpServer` uses a single accept thread, a cached client handler pool, and a bounded send pool.
-- `TcpClient` uses one listener thread and one send queue.
-- `UdpDiscoveryService` uses one listener thread and one scheduled beacon executor.
-- Shared peer state is stored in `ConcurrentHashMap`.
-- UI updates are marshalled back to the Swing event dispatch thread.
-- Shutdown closes sockets and stops executor services.
+- ✅ TCP Socket Communication
+- ✅ UDP Peer Discovery
+- ✅ Client / Server Architecture
+- ✅ Application-layer Protocol
+- ✅ Swing User Interface
+- ✅ Multithreading
+- ✅ Thread-safe Services
+- ✅ Layered Architecture
 
-## How to Run
+---
 
-Build and test:
+# 📅 Roadmap
 
-```bash
-mvn clean test
-```
+## Version 1.1
 
-Run a server:
+- [ ] Improve Whiteboard Synchronization
+- [ ] Better Peer Discovery
+- [ ] Message Validation
+- [ ] Logging
 
-```bash
-mvn exec:java -Dexec.args="--server 5050 alice"
-```
+## Version 1.2
 
-Run a client:
+- [ ] Unit Test
+- [ ] Integration Test
+- [ ] GitHub Actions
+- [ ] Maven Wrapper
 
-```bash
-mvn exec:java -Dexec.args="--connect localhost 5050 bob"
-```
+## Version 2.0
 
-The default TCP port is `5050`.
+- [ ] Undo / Redo
+- [ ] File Sharing
+- [ ] TLS Encryption
+- [ ] Authentication
+- [ ] Docker Deployment
 
-## Project Structure
+---
 
-- `model`: domain records such as peers, draw commands, and chat messages
-- `protocol`: message types and codec
-- `network`: TCP server/client handlers and UDP discovery
-- `service`: thread-safe application state
-- `ui`: Swing frame, whiteboard panel, and chat panel
-- `util`: message dispatch and conversion helpers
-- `docs`: design notes for architecture, protocol, networking, and interviews
+# 👨‍💻 Author
 
-## Future Improvements
+**Han Yao**
 
-- Add host selection UI using discovered peers
-- Add reconnect logic and heartbeat timeout handling
-- Persist drawing history for late-joining clients
-- Add undo/redo and richer drawing tools
-- Add integration tests with loopback sockets
-- Add structured logging configuration
-- Package with Maven Shade or jlink
+- GitHub: https://github.com/hanyao-dev
 
-## Resume Highlights
+---
 
-- Designed a Java 17 collaborative whiteboard using TCP sockets for reliable synchronization and UDP multicast for peer discovery.
-- Implemented a custom application-layer protocol with a dedicated codec, escaping, validation, and unit tests.
-- Built a layered client/server architecture separating Swing UI, services, network transport, and protocol parsing.
-- Applied Java concurrency primitives including `ExecutorService`, `ConcurrentHashMap`, and graceful shutdown handling.
+# ⭐ Why This Project?
+
+This project is built as a long-term Java networking portfolio to demonstrate production-style software engineering practices, including socket programming, TCP/UDP communication, concurrent programming, application-layer protocol design, and clean software architecture.
