@@ -1,469 +1,135 @@
-# 🎨 Java Network Whiteboard
+# Java Network Whiteboard
 
-<p align="center">
+A production-oriented Java Core portfolio project that demonstrates a collaborative whiteboard built with TCP sockets, UDP multicast discovery, multithreading, Swing UI, and a small application-layer protocol.
 
-![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge&logo=openjdk)
-![Maven](https://img.shields.io/badge/Maven-3.9-red?style=for-the-badge&logo=apachemaven)
-![TCP](https://img.shields.io/badge/TCP-Socket-blue?style=for-the-badge)
-![UDP](https://img.shields.io/badge/UDP-Multicast-blueviolet?style=for-the-badge)
-![Concurrency](https://img.shields.io/badge/Concurrency-Multithreading-success?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+## Project Overview
 
-</p>
+Java Network Whiteboard is a multi-user drawing and chat application. One instance can run as a TCP server, and other instances connect as TCP clients. Drawing events, chat messages, join/leave events, and clear-board commands are encoded as protocol messages and synchronized over reliable TCP connections. UDP multicast is used only for local peer discovery beacons.
 
-<p align="center">
+## Features
 
-A production-oriented Java networking project demonstrating **TCP/UDP Socket Programming**, **Multithreading**, **Concurrent Programming**, and **Application-layer Protocol Design** through a collaborative whiteboard application.
+- Multi-user whiteboard drawing synchronization
+- Chat synchronization
+- Join/leave peer state tracking
+- TCP client/server architecture
+- UDP multicast peer discovery
+- Application-layer message protocol with escaping
+- Thread-safe peer, drawing, and chat services
+- Graceful socket and executor shutdown
+- Swing UI separated from network code
+- Unit tests for protocol codec and peer service
 
-</p>
+## Tech Stack
 
----
+- Java 17
+- Maven
+- Java TCP Socket / ServerSocket
+- Java UDP MulticastSocket
+- ExecutorService
+- ConcurrentHashMap and CopyOnWriteArrayList
+- Swing
+- JUnit 5
 
-# 📖 Project Overview
-
-Java Network Whiteboard is a **real-time collaborative whiteboard** built using **Java Core**, **TCP Socket**, **UDP Multicast**, and **Swing**.
-
-Unlike traditional CRUD backend projects, this project focuses on **network programming fundamentals**, including reliable TCP communication, UDP peer discovery, concurrent client handling, and custom application-layer protocol design.
-
-The goal of this project is to demonstrate practical software engineering skills that are commonly required for Java Software Engineer and Backend Engineer positions.
-
----
-
-# ✨ Key Features
-
-### 🎨 Collaborative Whiteboard
-
-- Real-time drawing synchronization
-- Multi-user whiteboard
-- Canvas clear synchronization
-
-### 💬 Chat System
-
-- Real-time messaging
-- User join / leave notification
-- Thread-safe message handling
-
-### 🌐 Networking
-
-- TCP Socket communication
-- UDP Multicast peer discovery
-- Client / Server architecture
-- Custom application-layer protocol
-
-### ⚙ Concurrency
-
-- ExecutorService thread pool
-- ConcurrentHashMap
-- Graceful shutdown
-- Thread-safe services
-
----
-
-# 🛠 Tech Stack
-
-| Category | Technology |
-|-----------|------------|
-| Language | Java 17 |
-| Build Tool | Maven |
-| Networking | TCP Socket, UDP Multicast |
-| UI | Swing |
-| Concurrency | ExecutorService, ConcurrentHashMap |
-| Testing | JUnit 5 |
-| Version Control | Git / GitHub |
-
----
-
-# 🏗 Architecture
-
-```mermaid
-flowchart TD
-
-UI[🎨 Swing UI]
-
-Service[⚙ Service Layer]
-
-Protocol[📦 Protocol Layer]
-
-Network[🌐 Network Layer]
-
-TCP[TCP Communication]
-
-UDP[UDP Discovery]
-
-Peer[Remote Peers]
-
-UI --> Service
-
-Service --> Protocol
-
-Protocol --> Network
-
-Network --> TCP
-Network --> UDP
-
-TCP --> Peer
-UDP --> Peer
-```
-
----
-
-# 📂 Project Structure
+## Architecture
 
 ```text
-src
-└── main
-    └── java
-        └── com
-            └── hanyao
-                └── whiteboard
-                    │
-                    ├── Main.java
-                    │
-                    ├── config
-                    │
-                    ├── model
-                    │   ├── Peer.java
-                    │   ├── DrawCommand.java
-                    │   └── ChatMessage.java
-                    │
-                    ├── protocol
-                    │   ├── Message.java
-                    │   ├── MessageType.java
-                    │   └── MessageCodec.java
-                    │
-                    ├── network
-                    │   ├── TcpServer.java
-                    │   ├── TcpClient.java
-                    │   ├── ClientHandler.java
-                    │   └── UdpDiscoveryService.java
-                    │
-                    ├── service
-                    │   ├── DrawingService.java
-                    │   ├── ChatService.java
-                    │   └── PeerService.java
-                    │
-                    ├── ui
-                    │
-                    └── util
+src/main/java/com/hanyao/whiteboard
+├── Main.java
+├── config
+├── model
+├── protocol
+├── network
+├── service
+├── ui
+└── util
 ```
 
----
+The UI does not parse strings and does not open sockets. It calls service-level operations and sends typed `Message` objects through a `MessageSender`. The network layer reads/writes encoded lines, while `MessageCodec` owns all wire-format parsing.
 
-# 🌐 Network Design
+## TCP / UDP Design
 
-## TCP Communication
+TCP is used for reliable real-time application events:
 
-TCP is responsible for reliable message delivery.
+- `JOIN`
+- `LEAVE`
+- `DRAW`
+- `CHAT`
+- `CLEAR`
+- `PING`
+- `PONG`
 
-### Supported Messages
+UDP is used only for LAN discovery. Each server instance periodically multicasts a `JOIN|username|ip|port` beacon so peers can discover available whiteboard hosts without sending drawing data over UDP.
 
-- JOIN
-- LEAVE
-- DRAW
-- CHAT
-- CLEAR
-- PING
-- PONG
+## Message Protocol
 
----
+Messages are line-delimited UTF-8 strings:
 
-## UDP Peer Discovery
-
-UDP is responsible for peer discovery only.
-
-When a server starts:
-
-```
-Broadcast JOIN
-
-↓
-
-Peers receive discovery packet
-
-↓
-
-PeerService registers server
-
-↓
-
-Client establishes TCP connection
-```
-
-Drawing and chat messages are **never** transmitted through UDP.
-
----
-
-# 📦 Application-layer Protocol
-
-```
+```text
 JOIN|username|ip|port
-
 LEAVE|username
-
 DRAW|x1|y1|x2|y2|color|strokeWidth
-
 CHAT|username|message
-
 CLEAR|username
-
 PING|username
-
 PONG|username
 ```
 
-All protocol parsing is centralized inside **MessageCodec**, ensuring that UI and networking layers remain independent from protocol details.
+The codec supports escaping for `|`, backslash, and newlines, so chat payloads can contain normal user text without breaking parsing.
 
----
+## Concurrency Model
 
-# 🔄 Drawing Synchronization Flow
+- `TcpServer` uses a single accept thread, a cached client handler pool, and a bounded send pool.
+- `TcpClient` uses one listener thread and one send queue.
+- `UdpDiscoveryService` uses one listener thread and one scheduled beacon executor.
+- Shared peer state is stored in `ConcurrentHashMap`.
+- UI updates are marshalled back to the Swing event dispatch thread.
+- Shutdown closes sockets and stops executor services.
 
-```text
-User Draw
+## How to Run
 
-      │
-
-      ▼
-
-DrawingService
-
-      │
-
-      ▼
-
-MessageCodec
-
-      │
-
-      ▼
-
-TCP Client
-
-      │
-
-      ▼
-
-Network
-
-      │
-
-      ▼
-
-TCP Server
-
-      │
-
-      ▼
-
-MessageCodec
-
-      │
-
-      ▼
-
-DrawingService
-
-      │
-
-      ▼
-
-Canvas Update
-```
-
----
-
-# 🧵 Concurrency Design
-
-The application adopts a thread-safe architecture.
-
-### TCP Server
-
-- Dedicated accept thread
-- Client handler thread pool
-- Graceful shutdown
-
-### TCP Client
-
-- Listener thread
-- Send queue
-- Safe disconnect
-
-### Shared State
-
-- ConcurrentHashMap
-- CopyOnWriteArrayList
-
-### Thread Pool
-
-- ExecutorService
-- No manual thread creation for each request
-
----
-
-# 🚀 Getting Started
-
-## Clone Repository
+Build and test:
 
 ```bash
-git clone https://github.com/hanyao-dev/java-network-whiteboard.git
+mvn clean test
 ```
 
----
-
-## Build
+Run a server:
 
 ```bash
-mvn clean compile
+mvn exec:java -Dexec.args="--server 5050 alice"
 ```
 
----
-
-## Run Tests
+Run a client:
 
 ```bash
-mvn test
+mvn exec:java -Dexec.args="--connect localhost 5050 bob"
 ```
 
----
+The default TCP port is `5050`.
 
-## Start Server
+## Project Structure
 
-```bash
-mvn exec:java "-Dexec.args=--server 5050 alice"
-```
+- `model`: domain records such as peers, draw commands, and chat messages
+- `protocol`: message types and codec
+- `network`: TCP server/client handlers and UDP discovery
+- `service`: thread-safe application state
+- `ui`: Swing frame, whiteboard panel, and chat panel
+- `util`: message dispatch and conversion helpers
+- `docs`: design notes for architecture, protocol, networking, and interviews
 
----
+## Future Improvements
 
-## Start Client
+- Add host selection UI using discovered peers
+- Add reconnect logic and heartbeat timeout handling
+- Persist drawing history for late-joining clients
+- Add undo/redo and richer drawing tools
+- Add integration tests with loopback sockets
+- Add structured logging configuration
+- Package with Maven Shade or jlink
 
-```bash
-mvn exec:java "-Dexec.args=--connect localhost 5050 bob"
-```
+## Resume Highlights
 
----
-
-# 📈 Roadmap
-
-## ✅ Completed
-
-- Maven Project
-- Layered Architecture
-- Java Socket Programming
-- TCP Communication
-- UDP Discovery
-- Message Protocol
-- Swing UI
-- Multithreading
-- Thread-safe Services
-
----
-
-## 🚧 In Progress
-
-- Whiteboard synchronization
-- Chat synchronization
-- Peer discovery optimization
-- Unit testing
-
----
-
-## 🔜 Future Improvements
-
-- Undo / Redo
-- Image sharing
-- File transfer
-- Authentication
-- TLS encryption
-- Connection retry
-- Heartbeat timeout detection
-- GitHub Actions CI
-- Docker packaging
-
----
-
-# 📸 Screenshots
-
-## Whiteboard
-
-> *(Coming Soon)*
-
----
-
-## Chat
-
-> *(Coming Soon)*
-
----
-
-## Multi-client Demo
-
-> *(Coming Soon)*
-
----
-
-# 💼 Resume Highlights
-
-- Designed a layered Java networking application using TCP and UDP sockets.
-- Developed a custom application-layer protocol with centralized message encoding and decoding.
-- Implemented multithreaded client/server communication using ExecutorService.
-- Applied thread-safe data structures including ConcurrentHashMap and CopyOnWriteArrayList.
-- Built a modular architecture separating UI, Service, Protocol, and Network layers.
-- Implemented peer discovery using UDP multicast while reserving TCP for reliable communication.
-
----
-
-# 🎯 Skills Demonstrated
-
-✅ Java Core
-
-✅ Socket Programming
-
-✅ TCP Networking
-
-✅ UDP Networking
-
-✅ Multithreading
-
-✅ Concurrent Programming
-
-✅ ExecutorService
-
-✅ ConcurrentHashMap
-
-✅ Client / Server Architecture
-
-✅ Application-layer Protocol Design
-
-✅ Swing GUI
-
-✅ Maven
-
-✅ Software Architecture
-
----
-
-# 📚 What I Learned
-
-This project strengthened my understanding of:
-
-- Java Socket Programming
-- Reliable vs Unreliable Network Communication
-- TCP vs UDP trade-offs
-- Concurrent Programming
-- Thread-safe application design
-- Layered Software Architecture
-- Application-layer Protocol Design
-- Client / Server System Design
-
----
-
-# 📄 License
-
-This project is licensed under the MIT License.
-
----
-
-<p align="center">
-
-⭐ If you found this project helpful, feel free to give it a star!
-
-</p>
+- Designed a Java 17 collaborative whiteboard using TCP sockets for reliable synchronization and UDP multicast for peer discovery.
+- Implemented a custom application-layer protocol with a dedicated codec, escaping, validation, and unit tests.
+- Built a layered client/server architecture separating Swing UI, services, network transport, and protocol parsing.
+- Applied Java concurrency primitives including `ExecutorService`, `ConcurrentHashMap`, and graceful shutdown handling.
